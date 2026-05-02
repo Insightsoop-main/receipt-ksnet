@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'io.allink.tcp'
+version = 'v1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'io.netty:netty-all:4.1.82.Final'
+    implementation 'com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.9.0'
+    implementation 'org.postgresql:postgresql'
+
+    // runtime
+    runtimeOnly 'org.postgresql:postgresql'
+    // development only
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    // compile only
+    compileOnly 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs '-Xshare:off'   // JVM Agument 설정 경고 제거 (OpenJDK 64-bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended)
+}

@@ -1,0 +1,109 @@
+spring:
+  profiles:
+    active: prod
+  application:
+    name: koces-receipt
+server:
+  netty:
+    port: 11445
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://allink-receipt-dev.cqska7qadd9r.ap-northeast-2.rds.amazonaws.com:5432/allink-receipt-db
+    username: allink-admin
+    password: "!receipt12#$"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: true
+      connection-timeout: 10000
+      maximum-pool-size: 15
+      minimum-idle: 1
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+server:
+  port: 9201
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev, test
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://allink-receipt-dev.cqska7qadd9r.ap-northeast-2.rds.amazonaws.com:5432/allink-receipt-db
+    username: allink-admin
+    password: "!receipt12#$"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: true
+      connection-timeout: 10000
+      maximum-pool-size: 15
+      minimum-idle: 1
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+server:
+  netty:
+    port: 11445
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/e-receipt
+    username: allink-admin
+    password: "devonshin120#$"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: true
+      connection-timeout: 10000
+      maximum-pool-size: 15
+      minimum-idle: 1
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+server:
+  netty:
+    port: 11445
+  port: 28080
+
+
+# production 실 운영 환경
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      auto-commit: true
+      connection-timeout: 10000
+      maximum-pool-size: 20
+      minimum-idle: 3
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none
+server:
+  port: 8080

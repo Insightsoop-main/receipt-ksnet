@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="FILE_PATH" value="/home/ec2-user/kocesReceipt/logs/kocesreceipt-log"/>
+    <property name="PATTERN_FILE_NAME" value="%d{yyyy-MM-dd}"/>
+    <property name="PATTERN" value="%d{HH:mm:ss.SSS}:[%X{reqID:-startup}][%.20thread] %-4level [%logger{5}.%method:%line]- %msg%n"/>
+
+    <springProfile name="!(dev | prod | production)">
+        <property name="FILE_PATH" value="/Volumes/Workspaces/workspace/projects/Allink/app/bitbucket/e-receipt-koces-tcp/logs"/>
+        <property name="PATTERN" value="%d{HH:mm:ss.SSS}:[%cyan(%X{reqID:-startup})][%.20thread] %-4level [%logger{5}.%method:%line]- %msg%n"/>
+    </springProfile>
+
+    <springProfile name="production">
+        <property name="FILE_PATH" value="/app/logs"/>
+        <property name="PATTERN" value="%d{HH:mm:ss.SSS}:[%cyan(%X{reqID:-startup})][%.20thread] %-4level [%logger{5}.%method:%line]- %msg%n"/>
+    </springProfile>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${PATTERN}</Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="InfoFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${FILE_PATH}/info.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${PATTERN}</Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${FILE_PATH}/bak/info.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="Error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>error</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <file>${FILE_PATH}/error.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${PATTERN}</Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${FILE_PATH}/bak/error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <springProfile name="!(production)">
+        <root level="debug">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="InfoFile"/>
+            <appender-ref ref="Error"/>
+        </root>
+        <appender name="sqlRollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${FILE_PATH}/sql.log</file>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <Pattern>${PATTERN}</Pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${FILE_PATH}/bak/sql.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    <maxFileSize>50MB</maxFileSize>
+                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+        </appender>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" additivity="false" level="INFO">
+            <appender-ref ref="sqlRollingFile" />
+        </logger>
+        <logger name="org.hibernate.SQL" additivity="false" level="INFO">
+            <appender-ref ref="sqlRollingFile" />
+        </logger>
+        <logger name="software.amazon.awssdk" additivity="false" level="WARN" >
+            <appender-ref ref="sqlRollingFile" />
+        </logger>
+        <logger name="software.amazon.awssdk.request" additivity="false" level="INFO" >
+            <appender-ref ref="sqlRollingFile" />
+        </logger>
+    </springProfile>
+
+    <springProfile name="production">
+        <root level="info">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="InfoFile"/>
+            <appender-ref ref="Error"/>
+        </root>
+    </springProfile>
+</configuration>
