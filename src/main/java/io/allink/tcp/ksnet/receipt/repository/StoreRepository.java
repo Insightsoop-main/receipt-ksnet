@@ -22,7 +22,7 @@ public interface StoreRepository extends JpaRepository<Store, String> {
         ceo_name
       from store st
       where business_no = ?1
-        and exists( select 1 from merchant_tag mtag where mtag.store_uid = st.store_uid and mtag.device_id = ?2 and merchant_group_id = 'KSNET')
+        and exists( select 1 from merchant_tag mtag where mtag.store_uid = st.store_uid and mtag.device_id = ?2 and merchant_group_id LIKE 'KSNET%')
       """, nativeQuery = true)
   List<Store> findAllByBusinessNoAndDeviceId(String businessNo, String deviceId);
 

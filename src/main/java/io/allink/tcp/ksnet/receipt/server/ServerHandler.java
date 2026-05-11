@@ -46,8 +46,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void handlerAdded(ChannelHandlerContext ctx) {
-    int DATA_LENGTH = 600;
-    ctx.alloc().buffer(DATA_LENGTH);
+    // 버퍼 할당 제거 (메모리 누수 수정)
   }
 
   @Override
