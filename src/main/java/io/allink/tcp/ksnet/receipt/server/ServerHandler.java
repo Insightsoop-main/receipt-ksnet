@@ -66,34 +66,28 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     receipt = (KsnetMessage) message;
     log.info("Received message: {}", receipt);
 
-    String resCd = null;
+    // 가맹점 등록 여부와 관계없이 항상 성공 응답
+    String resCd = "00";
 
-    Store store =
-        storeService.findAllByBusinessNoAndDeviceId(receipt.getBusinessNo(), receipt.getTermId());
+    String trxId = (receipt.getTransDate() + "-" + receipt.getTrdUniKey()).trim();
 
-    if (store == null) {
-      resCd = "99"; // 가맹점 없음
-      log.error(
-          "가맹점 없음 : businessNo = {} terminalId = {}", receipt.getBusinessNo(), receipt.getTermId());
-    } else if (mertReceiptService.isNotExistsMerchantTag(receipt.getTermId())) {
-      log.error("태그 없음 : merchantNo = {} terminalId = {}", receipt.getMchNo(), receipt.getTermId());
-      resCd = "99"; // 등록된 태그가 없음
-    } else if (mertReceiptService.isExists(
-        (receipt.getTransDate() + "-" + receipt.getTrdUniKey()).trim())) {
-      log.info(
-          "중복 전문 수신 trxId: {}", (receipt.getTransDate() + "-" + receipt.getTrdUniKey()).trim());
-      resCd = "99"; // 중복 요청
+    if (mertReceiptService.isExists(trxId)) {
+      // 중복 요청은 DB 저장 생략, 응답은 성공으로
+      log.info("중복 전문 수신 trxId: {}", trxId);
     } else {
-      // 성공 응답
-      resCd = "00";
-      String svcType = Objects.toString(receipt.getSvcType(), "");
-
       try {
+        Store store =
+            storeService.findAllByBusinessNoAndDeviceId(receipt.getBusinessNo(), receipt.getTermId());
+
+        if (store == null) {
+          log.warn("미등록 가맹점 수신 - DB 적재: businessNo={}, terminalId={}",
+              receipt.getBusinessNo(), receipt.getTermId());
+        }
+
+        String svcType = Objects.toString(receipt.getSvcType(), "");
         KsnetMessage ksMsg = (KsnetMessage) receipt.clone();
 
-        ksMsg.setTrdType(
-            TRD_TYPE_MAP.getOrDefault(
-                svcType, svcType));
+        ksMsg.setTrdType(TRD_TYPE_MAP.getOrDefault(svcType, svcType));
         ksMsg.setCardNo(StringUtil.maskCardNumber(ksMsg.getCardNo()));
         ksMsg.setSvcType(SVC_TYPE_MAP.getOrDefault(svcType, svcType));
         ksMsg.setInsMon(ksMsg.getInsMon().equals("00") ? "일시불" : ksMsg.getInsMon());
@@ -101,33 +95,17 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ksMsg.setBuyCd(CARD_COMPANY_MAP.getOrDefault(ksMsg.getBuyCd(), ksMsg.getBuyCd()));
         ksMsg.setCheckYn("C".equals(ksMsg.getCheckYn()) ? "체크카드" : "");
         ksMsg.setSwipe(SWIPE_MAP.getOrDefault(ksMsg.getSwipe(), ksMsg.getSwipe()));
-        ksMsg.setMchNo(store.getStoreUid());
+
+        if (store != null) {
+          ksMsg.setMchNo(store.getStoreUid()); // 등록된 가맹점이면 store_uid 사용
+        }
+        // store가 null이면 KSNET 가맹점번호(mchNo) 그대로 사용
 
         mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg));
-        
+
       } catch (CloneNotSupportedException e) {
         throw new RuntimeException(e);
       }
-
-      
-//      receipt.setPayGubun(
-//          PAY_TYPE_MAP.getOrDefault(receipt.getPayGubun(), receipt.getPayGubun()));
-      
-//      receipt.setCancelCd(
-//          CANCEL_TYPE_MAP.getOrDefault(receipt.getCancelCd(), receipt.getCancelCd()));
-      
-//      receipt.setDdcYn(
-//          DDC_YN_MAP.getOrDefault(svcType + receipt.getDdcYn(), svcType + receipt.getDdcYn()));
-//      receipt.setCheckYn(
-//          CHECK_YN_MAP.getOrDefault(
-//              svcType + receipt.getCheckYn(), svcType + receipt.getCheckYn()));
-      
-//      ksnetMessage.setForeignYn(
-//          FOREIGN_YN_MAP.getOrDefault(
-//              svcType + receipt.getForeignYn(), svcType + receipt.getForeignYn()));
-      
-
-       
     }
     // 응답 발송
     String res = generateResponse(resCd, receipt);

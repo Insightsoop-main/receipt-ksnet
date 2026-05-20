@@ -22,13 +22,17 @@ public class JsonUtil {
       // ■ Json 전문 생성
       Receipt receipt = new Receipt();
       Mert merchant = new Mert();
-      merchant.setMertNm(store.getStoreName());
-      merchant.setMertAddr1(store.getAddr1());
-      merchant.setMertAddr2(store.getAddr2());
-      merchant.setMertCeoNm(store.getCeoName());
-      merchant.setMertBizNo(store.getBusinessNo());
-      merchant.setMertPhoneNo(store.getMobile());
-//      merchant.setMertData(message.getMchData());
+
+      if (store != null) {
+        merchant.setMertNm(store.getStoreName());
+        merchant.setMertAddr1(store.getAddr1());
+        merchant.setMertAddr2(store.getAddr2());
+        merchant.setMertCeoNm(store.getCeoName());
+        merchant.setMertBizNo(store.getBusinessNo());
+        merchant.setMertPhoneNo(store.getMobile());
+//        merchant.setMertData(message.getMchData());
+      }
+      // store가 null이면 가맹점 정보 없이 영수증 데이터만 저장
 
       receipt.setPayInfos(List.of(message));
       receipt.setMert(merchant);
