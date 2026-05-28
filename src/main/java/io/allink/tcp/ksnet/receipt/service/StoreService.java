@@ -18,8 +18,8 @@ public class StoreService {
     }
 
     public Store findAllByBusinessNoAndDeviceId(String businessNo, String deviceId) {
-        final List<Store> stores = storeRepository.findAllByBusinessNoAndDeviceId(
-            businessNo.replaceAll("(\\d{3})(\\d{2})(\\d{5})", "$1-$2-$3"), deviceId);
+        // Supabase는 business_number를 하이픈 없이 저장 (구 RDS는 하이픈 있었으나 Supabase는 없음)
+        final List<Store> stores = storeRepository.findAllByBusinessNoAndDeviceId(businessNo, deviceId);
         if (stores.isEmpty()) {
             return null;
         }
