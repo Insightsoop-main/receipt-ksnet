@@ -25,7 +25,7 @@ public class StoresRepository {
         String sql = """
             INSERT INTO stores (id, name, address, address_detail, phone, business_number, owner_name, is_active)
             VALUES (gen_random_uuid(), :name, :address, :addressDetail, :phone, :businessNumber, :ownerName, true)
-            ON CONFLICT (business_number)
+            ON CONFLICT ON CONSTRAINT stores_business_number_unique_notnull
             DO UPDATE SET
                 name           = EXCLUDED.name,
                 address        = EXCLUDED.address,
