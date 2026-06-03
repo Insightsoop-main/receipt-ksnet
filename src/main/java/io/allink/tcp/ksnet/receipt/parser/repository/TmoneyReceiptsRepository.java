@@ -34,7 +34,7 @@ public class TmoneyReceiptsRepository {
             INSERT INTO tmoney_receipts
                 (uuid, partner_req_uuid, partner_code, source, store_uid, pos_id, tag_id, enc, reg_date, is_claimed)
             VALUES
-                (:uuid, :partnerReqUuid, 'KSNET', :source, :storeUid, :posId, :tagId, :enc, now(), false)
+                (:uuid, :partnerReqUuid, 'KSNET-POS', :source, :storeUid, :posId, :tagId, :enc, now(), false)
             """;
 
         em.createNativeQuery(sql)
