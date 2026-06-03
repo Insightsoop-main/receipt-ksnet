@@ -15,6 +15,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(bearerTokenInterceptor)
-                .addPathPatterns("/registration/**");
+                .addPathPatterns("/registration/**")
+                .addPathPatterns("/e-receipt/**");
     }
 }
