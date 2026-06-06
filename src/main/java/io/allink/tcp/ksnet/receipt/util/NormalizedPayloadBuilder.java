@@ -149,7 +149,7 @@ public class NormalizedPayloadBuilder {
     // ── 표준 페이로드 DTO ──────────────────────────────────────────────
 
     @Getter
-    @Builder
+    @Builder(builderClassName = "NormalizedPayloadDtoBuilder")
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public static class NormalizedPayload {
         @JsonProperty("van_type")           private String vanType;
