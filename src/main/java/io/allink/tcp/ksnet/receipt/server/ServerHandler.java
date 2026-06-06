@@ -96,10 +96,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ksMsg.setCheckYn("C".equals(ksMsg.getCheckYn()) ? "체크카드" : "");
         ksMsg.setSwipe(SWIPE_MAP.getOrDefault(ksMsg.getSwipe(), ksMsg.getSwipe()));
 
-        if (store != null) {
-          ksMsg.setMchNo(store.getStoreUid()); // 등록된 가맹점이면 store_uid 사용
-        }
-        // store가 null이면 KSNET 가맹점번호(mchNo) 그대로 사용
+        // mchNo는 KSNET 원본 가맹점번호 그대로 저장 (store_uid로 변경하지 않음)
 
         mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg));
 
