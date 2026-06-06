@@ -15,6 +15,7 @@ import io.allink.tcp.ksnet.receipt.protocol.KsnetMessage;
 import io.allink.tcp.ksnet.receipt.service.MerchantReceiptService;
 import io.allink.tcp.ksnet.receipt.service.StoreService;
 import io.allink.tcp.ksnet.receipt.util.JsonUtil;
+import io.allink.tcp.ksnet.receipt.util.NormalizedPayloadBuilder;
 import io.allink.tcp.ksnet.receipt.util.StringUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -98,7 +99,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
         // mchNo는 KSNET 원본 가맹점번호 그대로 저장 (store_uid로 변경하지 않음)
 
-        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg));
+        String normalizedPayload = NormalizedPayloadBuilder.build(store, ksMsg);
+        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg), normalizedPayload);
 
       } catch (CloneNotSupportedException e) {
         throw new RuntimeException(e);

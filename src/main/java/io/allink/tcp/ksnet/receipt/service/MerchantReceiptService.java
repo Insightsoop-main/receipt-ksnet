@@ -21,9 +21,11 @@ public class MerchantReceiptService {
   }
 
   @Transactional
-  public void insertWithJson(KsnetMessage receipt, String payload) {
+  public void insertWithJson(KsnetMessage receipt, String payload, String normalizedPayload) {
 
-    String sql = "INSERT INTO merchant_receipt(receipt_uuid, reg_date, merchant_store_id, payload, device_id, trx_id) VALUES (uuid_generate_v4(), now(), ?, ?::json, ?, ?)";
+    String sql = "INSERT INTO merchant_receipt" +
+        "(receipt_uuid, reg_date, merchant_store_id, payload, device_id, trx_id, van_type, normalized_payload)" +
+        " VALUES (uuid_generate_v4(), now(), ?, ?::jsonb, ?, ?, 'KSNET_CAT', ?::jsonb)";
 
     Query query = entityManager.createNativeQuery(sql);
 
@@ -31,6 +33,7 @@ public class MerchantReceiptService {
     query.setParameter(2, payload);
     query.setParameter(3, receipt.getTermId());
     query.setParameter(4, "ksnet-" + (receipt.getTransDate() + "-" + receipt.getTrdUniKey()).trim());
+    query.setParameter(5, normalizedPayload);
     query.executeUpdate();
   }
 
