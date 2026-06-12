@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class TmoneyReceiptsRepository {
+public class ServerReceiptsRepository {
 
     private final EntityManager em;
 
@@ -17,7 +17,7 @@ public class TmoneyReceiptsRepository {
      * partnerReqUuid 기준 기존 uuid 조회 (중복 체크)
      */
     public String findUuidByPartnerReqUuid(String partnerReqUuid) {
-        String sql = "SELECT uuid FROM tmoney_receipts WHERE partner_req_uuid = :pru LIMIT 1";
+        String sql = "SELECT uuid FROM server_receipts WHERE partner_req_uuid = :pru LIMIT 1";
         List<?> result = em.createNativeQuery(sql)
                 .setParameter("pru", partnerReqUuid)
                 .getResultList();
@@ -25,13 +25,13 @@ public class TmoneyReceiptsRepository {
     }
 
     /**
-     * tmoney_receipts INSERT
+     * server_receipts INSERT
      */
     @Transactional
     public void insert(String uuid, String partnerReqUuid, String source,
                        String storeUid, String posId, String tagId, String enc) {
         String sql = """
-            INSERT INTO tmoney_receipts
+            INSERT INTO server_receipts
                 (uuid, partner_req_uuid, partner_code, source, store_uid, pos_id, tag_id, enc, reg_date, is_claimed)
             VALUES
                 (:uuid, :partnerReqUuid, 'KSNET-POS', :source, :storeUid, :posId, :tagId, :enc, now(), false)

@@ -2,7 +2,7 @@ package io.allink.tcp.ksnet.receipt.parser.service;
 
 import io.allink.tcp.ksnet.receipt.parser.dto.ParserRequest;
 import io.allink.tcp.ksnet.receipt.parser.dto.ParserResponse;
-import io.allink.tcp.ksnet.receipt.parser.repository.TmoneyReceiptsRepository;
+import io.allink.tcp.ksnet.receipt.parser.repository.ServerReceiptsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReceiptParserService {
 
-    private final TmoneyReceiptsRepository tmoneyReceiptsRepository;
+    private final ServerReceiptsRepository serverReceiptsRepository;
 
     public ParserResponse process(ParserRequest req) {
         // 필수값 검증
@@ -29,7 +29,7 @@ public class ReceiptParserService {
         }
 
         // 중복 체크 (partnerReqUuid 기준)
-        String existingUuid = tmoneyReceiptsRepository.findUuidByPartnerReqUuid(req.getPartnerReqUuid());
+        String existingUuid = serverReceiptsRepository.findUuidByPartnerReqUuid(req.getPartnerReqUuid());
         if (existingUuid != null) {
             log.info("중복 요청 - partnerReqUuid={}, existingUuid={}", req.getPartnerReqUuid(), existingUuid);
             return ParserResponse.duplicate(existingUuid);
@@ -37,7 +37,7 @@ public class ReceiptParserService {
 
         // 신규 UUID 생성 및 저장
         String newUuid = UUID.randomUUID().toString();
-        tmoneyReceiptsRepository.insert(
+        serverReceiptsRepository.insert(
                 newUuid,
                 req.getPartnerReqUuid(),
                 req.getSource(),
