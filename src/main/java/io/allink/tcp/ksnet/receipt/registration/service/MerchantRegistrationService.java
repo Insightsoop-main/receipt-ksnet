@@ -40,6 +40,9 @@ public class MerchantRegistrationService {
         if (req.getStore() == null || req.getStore().getBusinessNo() == null) {
             return RegistrationResponse.error("4003", "store.businessNo 누락");
         }
+        if (req.getStore().getName() == null || req.getStore().getName().isBlank()) {
+            return RegistrationResponse.error("4003", "store.name 누락");
+        }
         if (req.getTag().getTerminalType() == null ||
             !req.getTag().getTerminalType().matches(VALID_TERMINAL_TYPES)) {
             return RegistrationResponse.error("4221", "terminalType 값 오류 (KSNET-CAT 또는 KSNET-POS)");
