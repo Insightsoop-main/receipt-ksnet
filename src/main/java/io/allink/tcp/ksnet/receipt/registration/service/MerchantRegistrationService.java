@@ -2,6 +2,7 @@ package io.allink.tcp.ksnet.receipt.registration.service;
 
 import io.allink.tcp.ksnet.receipt.registration.dto.RegistrationResponse;
 import io.allink.tcp.ksnet.receipt.registration.dto.TagStoreRegistRequest;
+import io.allink.tcp.ksnet.receipt.registration.repository.RcRegistrationRepository;
 import io.allink.tcp.ksnet.receipt.registration.repository.StoresRepository;
 import io.allink.tcp.ksnet.receipt.registration.repository.TerminalsRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class MerchantRegistrationService {
 
     private final StoresRepository storesRepository;
     private final TerminalsRepository terminalsRepository;
+    private final RcRegistrationRepository rcRegistrationRepository;
 
     public RegistrationResponse process(TagStoreRegistRequest req) {
         String type = req.getType();
@@ -70,6 +72,14 @@ public class MerchantRegistrationService {
         // 2. terminals UPSERT
         UUID terminalId = terminalsRepository.upsert(storeId, tagId, tagName, deviceId, terminalType, merchantNumber);
 
+        // 3. 재구축 코어에도 기록(dual-write). 실패해도 기존 등록은 성공으로 응답한다.
+        try {
+            rcRegistrationRepository.upsert(tagId, deviceId, tagName, terminalType,
+                    businessNo, storeName, addr1, addr2, tel, ceoName);
+        } catch (Exception e) {
+            log.error("[rc] dual-write 실패 (기존 등록은 정상) tagId={}, deviceId={}", tagId, deviceId, e);
+        }
+
         log.info("가맹점 저장 완료 - storeId={}, terminalId={}", storeId, terminalId);
 
         return RegistrationResponse.ok(storeId.toString(), terminalId.toString());
@@ -86,6 +96,12 @@ public class MerchantRegistrationService {
         int updated = terminalsRepository.deactivate(tagId);
         if (updated == 0) {
             log.warn("삭제 대상 없음 - tagId={}", tagId);
+        }
+
+        try {
+            rcRegistrationRepository.deactivate(tagId);
+        } catch (Exception e) {
+            log.error("[rc] dual-write 비활성 실패 (기존 처리는 정상) tagId={}", tagId, e);
         }
 
         return RegistrationResponse.deleted();
