@@ -1,0 +1,31 @@
+name: Build check
+
+# 배포 없이 컴파일만 검증한다.
+#   docker-ghcr.yml은 production 브랜치 push에서 빌드+EC2 배포를 함께 수행하므로,
+#   작업 브랜치와 PR에서는 이 워크플로로 먼저 안전하게 확인한다.
+on:
+  push:
+    branches-ignore: [ "production" ]
+  pull_request:
+    branches: [ "production" ]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 배포 워크플로와 동일한 명령이라 결과가 그대로 대응된다
+      - name: Build with Gradle (skip tests)
+        run: ./gradlew build -x test
