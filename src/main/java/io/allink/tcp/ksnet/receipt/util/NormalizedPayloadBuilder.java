@@ -48,6 +48,11 @@ public class NormalizedPayloadBuilder {
             int serviceAmount  = toInt(p.getSvcAmt());
             int amount         = total - tax - serviceAmount;
 
+            // ── 거래구분 ───────────────────────────────────────────────
+            // 취소는 원거래의 승인번호를 그대로 실어온다. 이 값이 없으면 소비 측에서
+            // "같은 승인번호 = 중복"으로 오판해 취소 영수증이 사라진다. (ServerHandler에서 한글화됨)
+            String trdType = nullToEmpty(p.getTrdType());
+
             // ── 거래일시 ───────────────────────────────────────────────
             String transactionDate = toKstIso(p.getTransDate(), p.getTransTime());
 
@@ -69,6 +74,7 @@ public class NormalizedPayloadBuilder {
                     .tax(tax)
                     .serviceAmount(serviceAmount)
                     .amount(amount)
+                    .trdType(trdType)
                     .transactionDate(transactionDate)
                     .build();
 
@@ -169,6 +175,7 @@ public class NormalizedPayloadBuilder {
         @JsonProperty("tax")                private int tax;
         @JsonProperty("service_amount")     private int serviceAmount;
         @JsonProperty("amount")             private int amount;
+        @JsonProperty("trd_type")           private String trdType;   // 승인 | 취소
         @JsonProperty("transaction_date")   private String transactionDate;
     }
 }
