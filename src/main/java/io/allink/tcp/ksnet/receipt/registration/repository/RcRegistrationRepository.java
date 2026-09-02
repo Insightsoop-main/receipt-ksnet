@@ -18,6 +18,7 @@ import java.util.UUID;
  * 원칙(docs/rebuild-plan.md):
  *   - 상점은 우리가 먼저 등록한다. KSNET 유입분은 "등록"이 아니라 매칭·보완이다.
  *   - 병합 키 우선순위: tag_id(우리 발급) → device_id → business_number
+ *   - 단말 하나에 태그가 여러 장 붙을 수 있다(계산대·테이블 등)
  *   - terminalType이 어느 버퍼를 볼지 결정한다
  *       KSNET-CAT → receive_method=VAN    (merchant_receipt를 device_id로)
  *       KSNET-POS → receive_method=SERVER (server_receipts를 tag_id로)
@@ -69,8 +70,13 @@ public class RcRegistrationRepository {
             updateTerminal(terminalId, deviceId, receiveMethod, partnerCode);
         }
 
-        // 6) 태그 배정 — 단말당 현역 태그는 하나이므로 기존 태그를 먼저 해제한다
-        retireOtherLiveTags(terminalId, tagId);
+        // 6) 태그 배정 — 단말에 그냥 매단다. 이미 붙어 있는 다른 태그는 건드리지 않는다.
+        //    규격의 type은 U(등록/수정)와 D(삭제)뿐이라 "교체"와 "추가"를 구분할 수 없다.
+        //    추가로 해석하는 편이 손실이 없다:
+        //      교체 상황이면 폐기된 옛 태그가 남을 뿐 아무도 찍지 않는다.
+        //      추가 상황에서 교체로 처리하면 멀쩡히 붙어 있는 태그가 죽는다.
+        //    실제로 한 단말에 태그를 두 장 쓰는 매장이 있다(2026-09-02 기준 6곳).
+        //    교체가 필요하면 KSNET이 D로 옛 태그를 지우고 U로 새 태그를 보내면 된다.
         upsertTag(tagId, terminalId);
 
         log.info("[rc] UPSERT 완료 storeId={}, terminalId={}, tagId={}, method={}",
@@ -239,17 +245,6 @@ public class RcRegistrationRepository {
     }
 
     // ── 태그 ──────────────────────────────────────────────────────
-
-    /** 단말당 현역 태그는 하나(부분 유니크 인덱스). 다른 태그가 붙어 있으면 해제한다. */
-    private void retireOtherLiveTags(UUID terminalId, String keepTagId) {
-        em.createNativeQuery("""
-                UPDATE rc_tags SET status = 'retired', updated_at = now()
-                WHERE terminal_id = :terminalId AND status <> 'retired' AND tag_id <> :keepTagId
-                """)
-                .setParameter("terminalId", terminalId)
-                .setParameter("keepTagId", keepTagId)
-                .executeUpdate();
-    }
 
     private void upsertTag(String tagId, UUID terminalId) {
         em.createNativeQuery("""
