@@ -109,7 +109,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         // mchNo는 KSNET 원본 가맹점번호 그대로 저장 (store_uid로 변경하지 않음)
 
         String normalizedPayload = NormalizedPayloadBuilder.build(store, ksMsg);
-        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg), normalizedPayload);
+        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg), normalizedPayload, status);
 
       } catch (CloneNotSupportedException e) {
         throw new RuntimeException(e);
