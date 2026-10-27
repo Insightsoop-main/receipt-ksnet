@@ -80,9 +80,18 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         Store store =
             storeService.findAllByBusinessNoAndDeviceId(receipt.getBusinessNo(), receipt.getTermId());
 
+        // 미등록 수신을 status로 표시해 둔다.
+        //   전에는 정상 건과 섞여 있어 어느 단말이 등록 누락인지 알 수 없었다.
+        //   정리 주기도 이 값을 보고 갈린다 — 미등록은 사후 등록으로 살릴 수 있게 더 오래 둔다.
+        String status = null;
         if (store == null) {
-          log.warn("미등록 가맹점 수신 - DB 적재: businessNo={}, terminalId={}",
+          status = "NO_STORE";
+          log.warn("미등록 가맹점 수신 - 적재 후 사후 등록 대상: businessNo={}, terminalId={}",
               receipt.getBusinessNo(), receipt.getTermId());
+        } else if (mertReceiptService.isNotExistsMerchantTag(receipt.getTermId())) {
+          status = "NO_TAG";
+          log.warn("태그 없음 - 적재 후 사후 등록 대상: merchantNo={}, terminalId={}",
+              receipt.getMchNo(), receipt.getTermId());
         }
 
         String svcType = Objects.toString(receipt.getSvcType(), "");
@@ -100,7 +109,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         // mchNo는 KSNET 원본 가맹점번호 그대로 저장 (store_uid로 변경하지 않음)
 
         String normalizedPayload = NormalizedPayloadBuilder.build(store, ksMsg);
-        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg), normalizedPayload);
+        mertReceiptService.insertWithJson(ksMsg, JsonUtil.toJson(store, ksMsg), normalizedPayload, status);
 
       } catch (CloneNotSupportedException e) {
         throw new RuntimeException(e);

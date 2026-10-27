@@ -21,11 +21,16 @@ public class MerchantReceiptService {
   }
 
   @Transactional
-  public void insertWithJson(KsnetMessage receipt, String payload, String normalizedPayload) {
+  /**
+   * status: 미등록 수신이면 NO_STORE / NO_TAG, 정상이면 null.
+   * 전에는 미등록 건이 정상 건과 섞여 어느 단말이 등록 누락인지 알 수 없었다.
+   */
+  public void insertWithJson(KsnetMessage receipt, String payload, String normalizedPayload,
+                             String status) {
 
     String sql = "INSERT INTO merchant_receipt" +
-        "(receipt_uuid, reg_date, merchant_store_id, payload, device_id, trx_id, van_type, normalized_payload)" +
-        " VALUES (uuid_generate_v4(), now(), ?, ?::jsonb, ?, ?, 'KSNET_CAT', ?::jsonb)";
+        "(receipt_uuid, reg_date, merchant_store_id, payload, device_id, trx_id, van_type, normalized_payload, status)" +
+        " VALUES (uuid_generate_v4(), now(), ?, ?::jsonb, ?, ?, 'KSNET_CAT', ?::jsonb, ?)";
 
     Query query = entityManager.createNativeQuery(sql);
 
@@ -34,6 +39,7 @@ public class MerchantReceiptService {
     query.setParameter(3, receipt.getTermId());
     query.setParameter(4, "ksnet-" + (receipt.getTransDate() + "-" + receipt.getTrdUniKey()).trim());
     query.setParameter(5, normalizedPayload);
+    query.setParameter(6, status);
     query.executeUpdate();
   }
 
