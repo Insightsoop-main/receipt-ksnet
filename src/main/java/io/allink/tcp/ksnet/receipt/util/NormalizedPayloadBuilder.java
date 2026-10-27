@@ -75,6 +75,8 @@ public class NormalizedPayloadBuilder {
                     .serviceAmount(serviceAmount)
                     .amount(amount)
                     .trdType(trdType)
+                    .trdUniKey(nullToEmpty(p.getTrdUniKey()))
+                    .oriTrdUniKey(nullToEmpty(p.getOriTrdUniKey()))
                     .transactionDate(transactionDate)
                     .build();
 
@@ -176,6 +178,10 @@ public class NormalizedPayloadBuilder {
         @JsonProperty("service_amount")     private int serviceAmount;
         @JsonProperty("amount")             private int amount;
         @JsonProperty("trd_type")           private String trdType;   // 승인 | 취소
+        // 거래 고유키. 중복 판정의 기준이 되고, ori_trd_uni_key 는 취소가 가리키는
+        // 원거래다 — 복권을 주고 나서 취소되면 어느 건을 회수할지 이 값으로 찾는다.
+        @JsonProperty("trd_uni_key")        private String trdUniKey;
+        @JsonProperty("ori_trd_uni_key")    private String oriTrdUniKey;
         @JsonProperty("transaction_date")   private String transactionDate;
     }
 }
